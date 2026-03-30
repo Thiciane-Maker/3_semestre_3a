@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ranking de Jogadores</title>
+    <style>
+        body { font-family: Arial; text-align: center; }
+        table { margin: auto; border-collapse: collapse; width: 70%; }
+        th, td { padding: 10px; border: 1px solid #ccc; }
+        .btn { padding: 5px 10px; background: orange; border: none; cursor: pointer; }
+        .iniciante { color: blue; }
+        .intermediario { color: green; }
+        .avancado { color: red; }
+    </style>
+</head>
+<body>
+
+<h1>Ranking de Jogadores</h1>
+
+<table>
+    <tr>
+        <th>#</th>
+        <th>Jogador</th>
+        <th>Pontuação</th>
+        <th>Nível</th>
+        <th>Ações</th>
+    </tr>
+
+    <% jogadores.forEach((jogador, index) => { 
+        let nivel = "Iniciante";
+        let classe = "iniciante";
+
+        if (jogador.pontos >= 300) {
+            nivel = "Avancado";
+            classe = "avancado";
+        } else if (jogador.pontos >= 150) {
+            nivel = "Intermediario";
+            classe = "intermediario";
+        }
+    %>
+        <tr>
+            <td><%= index + 1 %></td>
+            <td><%= jogador.nome %></td>
+            <td><%= jogador.pontos %></td>
+            <td class="<%= classe %>">
+                <%= nivel %>
+            </td>
+            <td>
+                <form action="/pontuar/<%= jogador.id %>" method="POST">
+                    <button class="btn">+10 pts</button>
+                </form>
+            </td>
+        </tr>
+    <% }) %>
+</table>
+
+<h2>Adicionar Jogador</h2>
+
+<form action="/adicionar" method="POST">
+    <input type="text" name="nome" placeholder="Nome do jogador" required>
+    <input type="number" name="pontos" placeholder="Pontuação inicial">
+    <button type="submit">Adicionar</button>
+</form>
+
+</body>
+</html>
