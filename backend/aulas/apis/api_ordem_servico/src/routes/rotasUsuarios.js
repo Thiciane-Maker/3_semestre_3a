@@ -3,147 +3,116 @@ import { BD } from "../../db.js";
 
 const router = Router();
 
-router.get('/usuarios', async (req, res) => {
+// ================= GET =================
+router.get('/', async (req, res) => {
     try {
-        const query = 'SELECT * FROM usuarios';
-        const { rows } = await BD.query(query);
+        const { rows } = await BD.query('SELECT * FROM usuarios');
         res.status(200).json(rows);
     } catch (error) {
-        console.error('Erro ao listar os usuários:', error.message);
+        console.error('Erro ao listar:', error.message);
         res.status(500).json({ error: 'Erro ao listar usuários' });
     }
 });
 
-// Endpoint para adicionar um novo usuário
-router.post('/usuarios', async (req, res) => {
-    const { nome, email, senha } = req.body;
+// ================= POST =================
+router.post('/', async (req, res) => {
+    const { nome, email, senha, tipo_acesso } = req.body;
 
     try {
-        const comando = `INSERT INTO usuarios(nome, email, senha) VALUES ($1, $2, $3)`;
-        const valores = [nome, email, senha];
+        await BD.query(
+            `INSERT INTO usuarios (nome, email, senha, tipo_acesso) 
+             VALUES ($1, $2, $3, $4)`,
+            [nome, email, senha, tipo_acesso]
+        );
 
-        await BD.query(comando, valores);
-
-        res.status(201).json({ message: "Usuário criado com sucesso" });
+        res.status(201).json({ message: "Usuário criado" });
     } catch (error) {
-        console.error('Erro ao criar usuário:', error.message);
+        console.error('Erro ao criar:', error.message);
         res.status(500).json({ error: 'Erro ao criar usuário' });
     }
 });
 
-// Atualizar usuário completo
-router.put('/usuarios/:id_usuario', async (req, res) => {
+// ================= PUT =================
+router.put('/:id_usuario', async (req, res) => {
     const { id_usuario } = req.params;
-    const { nome, email, senha } = req.body;
+    const { nome, email, senha, tipo_acesso } = req.body;
 
     try {
-        const verificarUsuario = await BD.query(
-            'SELECT * FROM usuarios WHERE id_usuario = $1',
-            [id_usuario]
+        const { rowCount } = await BD.query(
+            `UPDATE usuarios
+             SET nome=$1, email=$2, senha=$3, tipo_acesso=$4
+             WHERE id_usuario=$5`,
+            [nome, email, senha, tipo_acesso, id_usuario]
         );
 
-        if (verificarUsuario.rows.length === 0) {
+        if (rowCount === 0) {
             return res.status(404).json({ error: 'Usuário não encontrado' });
         }
 
-        const comando = `
-            UPDATE usuarios
-            SET nome = $1, email = $2, senha = $3
-            WHERE id_usuario = $4
-        `;
-
-        const valores = [nome, email, senha, id_usuario];
-
-        await BD.query(comando, valores);
-
-        res.status(200).json({ message: "Usuário atualizado com sucesso" });
+        res.status(200).json({ message: "Atualizado com sucesso" });
     } catch (error) {
-        console.error('Erro ao atualizar usuário:', error.message);
+        console.error('Erro ao atualizar:', error.message);
         res.status(500).json({ error: 'Erro ao atualizar usuário' });
     }
 });
 
-// Atualização parcial
-router.patch('/usuarios/:id_usuario', async (req, res) => {
+// ================= PATCH =================
+router.patch('/:id_usuario', async (req, res) => {
     const { id_usuario } = req.params;
-    const { nome, email, senha } = req.body;
+    const dados = req.body;
 
     try {
-        const verificarUsuario = await BD.query(
-            'SELECT * FROM usuarios WHERE id_usuario = $1',
-            [id_usuario]
-        );
-
-        if (verificarUsuario.rows.length === 0) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
-        }
-
         const campos = [];
         const valores = [];
-        let contador = 1;
+        let i = 1;
 
-        if (nome !== undefined) {
-            campos.push(`nome = $${contador}`);
-            valores.push(nome);
-            contador++;
-        }
-
-        if (email !== undefined) {
-            campos.push(`email = $${contador}`);
-            valores.push(email);
-            contador++;
-        }
-
-        if (senha !== undefined) {
-            campos.push(`senha = $${contador}`);
-            valores.push(senha);
-            contador++;
+        for (let campo in dados) {
+            campos.push(`${campo} = $${i++}`);
+            valores.push(dados[campo]);
         }
 
         if (campos.length === 0) {
-            return res.status(400).json({ message: "Nenhum campo para atualizar" });
+            return res.status(400).json({ message: "Nada para atualizar" });
         }
 
         valores.push(id_usuario);
 
-        const comando = `
-            UPDATE usuarios
-            SET ${campos.join(', ')}
-            WHERE id_usuario = $${contador}
-        `;
+        const { rowCount } = await BD.query(
+            `UPDATE usuarios SET ${campos.join(', ')} WHERE id_usuario = $${i}`,
+            valores
+        );
 
-        await BD.query(comando, valores);
+        if (rowCount === 0) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
 
-        return res.status(200).json({ message: "Usuário atualizado com sucesso" });
+        res.status(200).json({ message: "Atualizado parcialmente" });
 
     } catch (error) {
-        console.error('Erro ao atualizar usuário:', error.message);
-        return res.status(500).json({ error: 'Erro ao atualizar usuário' });
+        console.error('Erro no patch:', error.message);
+        res.status(500).json({ error: 'Erro ao atualizar usuário' });
     }
 });
 
-// Deletar usuário
-router.delete('/usuarios/:id_usuario', async (req, res) => {
+// ================= DELETE =================
+router.delete('/:id_usuario', async (req, res) => {
     const { id_usuario } = req.params;
 
     try {
-        const verificarUsuario = await BD.query(
-            'SELECT * FROM usuarios WHERE id_usuario = $1',
+        const { rowCount } = await BD.query(
+            `DELETE FROM usuarios WHERE id_usuario = $1`,
             [id_usuario]
         );
 
-        if (verificarUsuario.rows.length === 0) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
+        if (rowCount === 0) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
         }
 
-        const comando = `DELETE FROM usuarios WHERE id_usuario = $1`;
-        await BD.query(comando, [id_usuario]);
-
-        return res.status(200).json({ message: 'Usuário deletado com sucesso' });
+        res.status(200).json({ message: "Deletado com sucesso" });
 
     } catch (error) {
-        console.error('Erro ao deletar usuário:', error.message);
-        return res.status(500).json({ error: 'Erro ao deletar usuário' });
+        console.error('Erro ao deletar:', error.message);
+        res.status(500).json({ error: 'Erro ao deletar usuário' });
     }
 });
 

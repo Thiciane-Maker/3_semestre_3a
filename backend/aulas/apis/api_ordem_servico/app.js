@@ -1,29 +1,40 @@
 import express from 'express';
-import { testarConexao } from './db.js';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
+
+import { testarConexao } from './db.js';
 import documentacao from './config/swagger.js';
-import rotasUsuarios from "./src/routes/rotasUsuarios.js";
-import rotasDepartamentos from "./src/routes/rotasDepartamentos.js";
-import rotasOrdem from "./src/routes/rotasOrdem.js";
-import cors from 'cors'
+
+import rotasUsuarios from "../api_ordem_servico/src/routes/rotasUsuarios.js";
+import rotasCategorias from "../api_ordem_servico/src/routes/rotasCategorias.js";
+import rotasSubcategorias from "../api_ordem_servico/src/routes/rotasSubcategorias.js";
+
+
 
 const app = express();
+
+app.use(cors());
 app.use(express.json()); 
+
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(documentacao));
 
-app.use(cors())
 app.get('/', async (req, res) => {
-    await testarConexao();
-    res.redirect('/swagger');
+    try {
+        await testarConexao();
+        res.redirect('/swagger');
+    } catch (error) {
+        res.status(500).send("Erro ao conectar ao banco de dados.");
+    }
 });
 
-app.use(rotasDepartamentos);
-app.use(rotasUsuarios);
-app.use(rotasOrdem);
+
+app.use('/usuarios', rotasUsuarios);
+app.use('/categorias', rotasCategorias);
+app.use('/subcategorias', rotasSubcategorias);
+
 
 const porta = 3000;
 
 app.listen(porta, () => {
     console.log(`Servidor rodando em: http://localhost:${porta}`);
-
 });

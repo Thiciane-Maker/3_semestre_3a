@@ -1,31 +1,31 @@
 const documentacao = {
     openapi: '3.0.3',
     info: {
-        title: 'API de Ordem de Serviços',
-        description: 'Documentação da API de ordens de serviço',
+        title: 'API Financeira',
         version: '1.0.0'
     },
     servers: [
-        { url: 'http://localhost:3000', description: 'Localhost' }
+        { url: 'http://localhost:3000' }
     ],
     tags: [
-        { name: 'usuarios', description: 'Operações relacionadas a usuários' },
-        { name: 'departamentos', description: 'Operações relacionadas a departamentos' },
-        { name: 'ordens', description: 'Operações relacionadas a ordens de serviço' }
+        { name: 'usuarios' },
+        { name: 'categorias' },
+        { name: 'subcategorias' }
     ],
     paths: {
+        // ================= USUARIOS =================
         "/usuarios": {
             get: {
                 tags: ["usuarios"],
-                summary: "Listar todos usuários",
+                summary: "Listar usuários",
                 responses: {
                     200: {
-                        description: "Dados obtidos com sucesso",
+                        description: "Lista de usuários retornada com sucesso",
                         content: {
                             "application/json": {
                                 schema: {
                                     type: "array",
-                                    items: { $ref: '#/components/schemas/Listar_Usuarios' }
+                                    items: { $ref: '#/components/schemas/Usuario' }
                                 }
                             }
                         }
@@ -34,18 +34,14 @@ const documentacao = {
             },
             post: {
                 tags: ["usuarios"],
-                summary: "Cadastrar novo usuário",
+                summary: "Criar usuário",
                 requestBody: {
                     required: true,
-                    content: {
-                        "application/json": {
-                            schema: { $ref: "#/components/schemas/Cadastrar_Usuario" }
-                        }
-                    }
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UsuarioInput" } } }
                 },
-                responses: {
-                    201: { description: "Usuário cadastrado com sucesso" },
-                    500: { description: "Erro interno no servidor" }
+                responses: { 
+                    201: { description: "Usuário criado com sucesso" },
+                    400: { description: "Erro na requisição" }
                 }
             }
         },
@@ -53,163 +49,193 @@ const documentacao = {
             put: {
                 tags: ["usuarios"],
                 summary: "Atualizar usuário",
-                parameters: [
-                    { name: "id_usuario", in: "path", required: true, schema: { type: "integer", example: 1 } }
-                ],
+                parameters: [{ name: "id_usuario", in: "path", required: true, schema: { type: "integer" } }],
                 requestBody: {
                     required: true,
-                    content: { "application/json": { schema: { $ref: "#/components/schemas/Atualizar_Usuario" } } }
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UsuarioInput" } } }
                 },
-                responses: { 200: { description: "Usuário atualizado" } }
+                responses: { 
+                    200: { description: "Atualizado com sucesso" },
+                    404: { description: "Usuário não encontrado" }
+                }
             },
             delete: {
                 tags: ["usuarios"],
-                summary: "Remover usuário",
-                parameters: [
-                    { name: "id_usuario", in: "path", required: true, schema: { type: "integer" } }
-                ],
-                responses: { 200: { description: "Usuário removido" } }
+                summary: "Deletar usuário",
+                parameters: [{ name: "id_usuario", in: "path", required: true, schema: { type: "integer" } }],
+                responses: {
+                    200: { description: "Deletado com sucesso" },
+                    404: { description: "Usuário não encontrado" }
+                }
             }
         },
-        "/departamentos": {
+
+        // ================= CATEGORIAS =================
+        "/categorias": {
             get: {
-                tags: ["departamentos"],
-                summary: "Listar departamentos",
+                tags: ["categorias"],
+                summary: "Listar categorias",
                 responses: {
                     200: {
-                        description: "Lista de departamentos",
+                        description: "Lista de categorias",
                         content: {
                             "application/json": {
-                                schema: { type: "array", items: { $ref: '#/components/schemas/Listar_Departamentos' } }
+                                schema: { type: "array", items: { $ref: '#/components/schemas/Categoria' } }
                             }
                         }
                     }
                 }
             },
             post: {
-                tags: ["departamentos"],
-                summary: "Criar departamento",
+                tags: ["categorias"],
+                summary: "Criar categoria",
                 requestBody: {
                     required: true,
-                    content: { "application/json": { schema: { $ref: "#/components/schemas/Criar_Departamento" } } }
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/CategoriaInput" } } }
                 },
-                responses: { 201: { description: "Criado" } }
+                responses: { 201: { description: "Criada com sucesso" } }
             }
         },
-        "/ordens": {
-            get: {
-                tags: ["ordens"],
-                summary: "Listar ordens",
-                responses: {
-                    200: {
-                        description: "Sucesso",
-                        content: {
-                            "application/json": {
-                                schema: { type: "array", items: { $ref: '#/components/schemas/Listar_Ordem' } }
-                            }
-                        }
-                    }
-                }
-            },
-            post: {
-                tags: ["ordens"],
-                summary: "Criar ordem",
-                requestBody: {
-                    required: true,
-                    content: { "application/json": { schema: { $ref: "#/components/schemas/Criar_Ordem" } } }
-                },
-                responses: { 201: { description: "Ordem criada" } }
-            }
-        },
-        "/ordens/{id_ordem}": {
+        "/categorias/{id_categoria}": {
             put: {
-                tags: ["ordens"],
-                summary: "Atualizar ordem",
-                parameters: [{ name: "id_ordem", in: "path", required: true, schema: { type: "integer" } }],
+                tags: ["categorias"],
+                summary: "Atualizar categoria",
+                parameters: [{ name: "id_categoria", in: "path", required: true, schema: { type: "integer" } }],
                 requestBody: {
                     required: true,
-                    content: { "application/json": { schema: { $ref: "#/components/schemas/Criar_Ordem" } } }
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/CategoriaInput" } } }
                 },
-                responses: { 200: { description: "Atualizada" } }
+                responses: { 
+                    200: { description: "Atualizada com sucesso" },
+                    404: { description: "Categoria não encontrada" }
+                }
             },
             delete: {
-                tags: ["ordens"],
-                summary: "Remover ordem",
-                parameters: [{ name: "id_ordem", in: "path", required: true, schema: { type: "integer" } }],
-                responses: { 200: { description: "Removida" } }
+                tags: ["categorias"],
+                summary: "Deletar categoria",
+                parameters: [{ name: "id_categoria", in: "path", required: true, schema: { type: "integer" } }],
+                responses: { 
+                    200: { description: "Deletada com sucesso" },
+                    404: { description: "Categoria não encontrada" }
+                }
+            }
+        },
+
+        // ================= SUBCATEGORIAS =================
+        "/subcategorias": {
+            get: {
+                tags: ["subcategorias"],
+                summary: "Listar subcategorias",
+                responses: {
+                    200: {
+                        description: "Lista de subcategorias com nome da categoria pai",
+                        content: {
+                            "application/json": {
+                                schema: { type: "array", items: { $ref: '#/components/schemas/Subcategoria' } }
+                            }
+                        }
+                    }
+                }
+            },
+            post: {
+                tags: ["subcategorias"],
+                summary: "Criar subcategoria",
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/SubcategoriaInput" } } }
+                },
+                responses: { 
+                    201: { description: "Criada com sucesso" },
+                    400: { description: "ID da Categoria inválido ou campos faltando" }
+                }
+            }
+        },
+        "/subcategorias/{id_subcategoria}": {
+            put: {
+                tags: ["subcategorias"],
+                summary: "Atualizar subcategoria",
+                parameters: [{ name: "id_subcategoria", in: "path", required: true, schema: { type: "integer" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/SubcategoriaInput" } } }
+                },
+                responses: { 
+                    200: { description: "Atualizada com sucesso" },
+                    404: { description: "Subcategoria não encontrada" }
+                }
+            },
+            delete: {
+                tags: ["subcategorias"],
+                summary: "Deletar subcategoria",
+                parameters: [{ name: "id_subcategoria", in: "path", required: true, schema: { type: "integer" } }],
+                responses: { 
+                    200: { description: "Deletada com sucesso" },
+                    404: { description: "Subcategoria não encontrada" }
+                }
             }
         }
     },
     components: {
         schemas: {
-            Listar_Usuarios: {
+            Usuario: {
                 type: "object",
                 properties: {
                     id_usuario: { type: "integer", example: 1 },
-                    nome: { type: "string", example: "Ricardo" },
-                    email: { type: "string", example: "ricardo@email.com" }
+                    nome: { type: "string", example: "Fulano de Tal" },
+                    email: { type: "string", example: "fulano@email.com" },
+                    tipo_acesso: { type: "string", example: "usuario" },
+                    ativo: { type: "boolean", example: true }
                 }
             },
-            Cadastrar_Usuario: {
+            UsuarioInput: {
                 type: "object",
                 required: ["nome", "email", "senha"],
                 properties: {
-                    nome: { type: "string", example: "Ricardo" },
-                    email: { type: "string", example: "ricardo@email.com" },
-                    senha: { type: "string", example: "123456" }
+                    nome: { type: "string", example: "Fulano de Tal" },
+                    email: { type: "string", example: "fulano@email.com" },
+                    senha: { type: "string", example: "senha123" },
+                    tipo_acesso: { type: "string", example: "usuario" },
+                    ativo: { type: "boolean", example: true }
                 }
             },
-            Atualizar_Usuario: {
+            Categoria: {
                 type: "object",
                 properties: {
-                    nome: { type: "string", example: "Ricardo" },
-                    email: { type: "string", example: "ricardo@email.com" },
-                    senha: { type: "string", example: "123456" }
+                    id_categoria: { type: "integer", example: 1 },
+                    nome: { type: "string", example: "Alimentação" },
+                    tipo: { type: "string", example: "D" },
+                    ativo: { type: "boolean", example: true }
                 }
             },
-            Listar_Departamentos: {
+            CategoriaInput: {
                 type: "object",
+                required: ["nome", "tipo"],
                 properties: {
-                    id_departamento: { type: "integer", example: 1 },
-                    nome: { type: "string", example: "TI" },
-                    descricao: { type: "string", example: "Tecnologia" }
+                    nome: { type: "string", example: "Educação" },
+                    tipo: { type: "string", example: "D" },
+                    descricao: { type: "string", example: "Livros e cursos" },
+                    cor: { type: "string", example: "#4A90E2" },
+                    icone: { type: "string", example: "book" },
+                    ativo: { type: "boolean", example: true }
                 }
             },
-            Criar_Departamento: {
+            Subcategoria: {
                 type: "object",
-                required: ["nome", "descricao"],
                 properties: {
-                    nome: { type: "string", example: "Financeiro" },
-                    descricao: { type: "string", example: "Departamento financeiro" }
+                    id_subcategoria: { type: "integer", example: 1 },
+                    nome: { type: "string", example: "Mercado" },
+                    id_categoria: { type: "integer", example: 1 },
+                    nome_categoria: { type: "string", example: "Alimentação" },
+                    ativo: { type: "boolean", example: true }
                 }
             },
-            Criar_Ordem: {
+            SubcategoriaInput: {
                 type: "object",
-                required: ["titulo", "descricao", "id_departamento", "numero_ordem", "id_usuario"],
+                required: ["nome", "id_categoria"],
                 properties: {
-                    numero_ordem: { type: "integer", example: 1001 },
-                    titulo: { type: "string", example: "Manutenção servidor" },
-                    descricao: { type: "string", example: "Servidor instável" },
-                    id_departamento: { type: "integer", example: 1 },
-                    prioridade: { type: "string", example: "Alta" },
-                    status: { type: "string", example: "Aberto" },
-                    id_usuario: { type: "integer", example: 1 }
-                }
-            },
-            Listar_Ordem: {
-                type: "object",
-                properties: {
-                    id_ordem: { type: "integer", example: 1 },
-                    numero_ordem: { type: "integer", example: 1001 },
-                    titulo: { type: "string", example: "Manutenção" },
-                    descricao: { type: "string", example: "Desc..." },
-                    prioridade: { type: "string", example: "Alta" },
-                    status: { type: "string", example: "Aberto" },
-                    data: { type: "string", format: "date", example: "2026-03-16" },
-                    id_departamento: { type: "integer", example: 1 },
-                    nome_departamento: { type: "string", example: "TI" },
-                    id_usuario: { type: "integer", example: 1 },
-                    nome_usuario: { type: "string", example: "Ana Laura" }
+                    nome: { type: "string", example: "Mensalidade Faculdade" },
+                    id_categoria: { type: "integer", example: 1 },
+                    ativo: { type: "boolean", example: true }
                 }
             }
         }
